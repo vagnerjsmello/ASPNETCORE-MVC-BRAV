@@ -1,0 +1,28 @@
+﻿@model BRAV.Models.StudentViewModel
+@{
+    Layout = null;
+}
+<div class="row">
+    <div class="col-md-12">
+        <form id="formDelete"
+              name="formDelete"
+              method="post"
+              data-ajax-url="Student/Delete"
+              data-ajax="true"
+              data-ajax-method="post"
+              data-ajax-begin="onBegin"
+              data-ajax-success="onSuccess"
+              data-ajax-failure="onFailure"
+              data-ajax-complete="onComplete">
+
+            <h5>Are you sure you want to delete this?</h5>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="modal-footer">
+                <button class="btn btn-danger">Delete</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+

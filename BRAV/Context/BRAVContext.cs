@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using BRAV.Models;
 
 namespace BRAV.Context
 {
@@ -9,6 +10,8 @@ namespace BRAV.Context
         { }
 
         public DbSet<Student> Students { get; set; }
+
+        public DbSet<BRAV.Models.StudentViewModel> StudentViewModel { get; set; }
 
     }
 }

@@ -1,0 +1,58 @@
+﻿@model IEnumerable<BRAV.Models.StudentViewModel>
+
+@if (Model.Count() <= 0)
+{
+    <h4 class="text-center">
+        No records
+    </h4>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr class="d-flex">
+                <th class="col-1">
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>
+                <th class="col-4">
+                    @Html.DisplayNameFor(model => model.FullName)
+                </th>
+                <th class="col-3">
+                    @Html.DisplayNameFor(model => model.Email)
+                </th>
+                <th class="col-2">
+                    @Html.DisplayNameFor(model => model.Birthday)
+                </th>
+                <th class="col-2 text-right">
+                    @Html.DisplayName("Actions")
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="d-flex">
+                    <td class="col-1">
+                        @Html.DisplayFor(modelItem => item.Id)
+                    </td>
+                    <td class="col-4">
+                        @Html.DisplayFor(modelItem => item.FullName)
+                    </td>
+                    <td class="col-3">
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td class="col-2">
+                        @Html.DisplayFor(modelItem => item.Birthday)
+                    </td>
+                    <td class="col-2 text-right">
+                        <div class="btn-group">
+                            <button type="button" onclick="openEditForm(@item.Id)" class="btn btn-sm btn-warning"><i class="far fa-edit"></i></button>
+                            <button type="button" onclick="openDetailsForm(@item.Id)" class="btn btn-sm btn-info"><i class="far fa-eye"></i></button>
+                            <button type="button" onclick="openDeleteForm(@item.Id)" class="btn btn-sm btn-danger"><i class="far fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
