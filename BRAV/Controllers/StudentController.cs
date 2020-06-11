@@ -7,164 +7,173 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BRAV.Context;
 using BRAV.Models;
+using AutoMapper;
 
 namespace BRAV.Controllers
 {
     public class StudentController : Controller
     {
         private readonly BRAVContext _context;
+        private readonly IMapper _mapper;
 
-        public StudentController(BRAVContext context)
+        public StudentController(BRAVContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET: Student
         public async Task<IActionResult> Index()
         {
-            return View(await _context.StudentViewModel.ToListAsync());
+            return View(await _context.Students.ToListAsync());
         }
 
         public async Task<IActionResult> GetStudents(string filter)
         {
-            
-            var studentsModel = await _context.StudentViewModel.ToListAsync();
+            try
+            {
+                //EF Core GetAll Students
+                var students = await _context.Students.ToListAsync();
 
-            if (string.IsNullOrEmpty(filter))
-            {
-                return PartialView("List", studentsModel);
+                //AutoMapper Entity to ViewModel
+                var studentsViewModel = _mapper.Map<List<StudentViewModel>>(students);
+
+                if (string.IsNullOrEmpty(filter))
+                {
+                    return PartialView("List", studentsViewModel);
+                }
+                else
+                {
+                    return PartialView("List", studentsViewModel.Where(x => x.FirstName.ToLower().Contains(filter.ToLower()) ||
+                                                            x.LastName.ToLower().Contains(filter.ToLower()) ||
+                                                            x.Email.ToLower().Contains(filter.ToLower())));
+                }
             }
-            else
+            catch (Exception)
             {
-                return PartialView("List", studentsModel.Where(x => x.FirstName.ToLower().Contains(filter.ToLower()) ||
-                                                        x.LastName.ToLower().Contains(filter.ToLower()) ||
-                                                        x.Email.ToLower().Contains(filter.ToLower())));
+                throw;
             }
+
         }
 
-        // GET: Student/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                //EF Core Get Student
+                var student = await _context.Students.FirstOrDefaultAsync(m => m.Id == id);
+
+                //AutoMapper Entity to ViewModel
+                var studentViewModel = _mapper.Map<StudentViewModel>(student);
+
+                return PartialView("Details", studentViewModel);
+            }
+            catch (Exception)
+            {
+                throw;
             }
 
-            var studentViewModel = await _context.StudentViewModel
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (studentViewModel == null)
-            {
-                return NotFound();
-            }
-
-            return View(studentViewModel);
         }
 
-        // GET: Student/Create
+
         public IActionResult Create()
         {
-            return View();
+            return PartialView("Create", new StudentViewModel());
         }
 
-        // POST: Student/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Birthday")] StudentViewModel studentViewModel)
+        public async Task<JsonResult> Create([Bind("Id,FirstName,LastName,Email,Birthday")] StudentViewModel studentViewModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(studentViewModel);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    //AutoMapper ViewModel to Entity
+                    var student = _mapper.Map<Student>(studentViewModel);
+                    
+                    //EFCore Add Student
+                    _context.Add(student);
+                    await _context.SaveChangesAsync();
+
+                    return Json(new { data = "Operation performed successfully!", success = true });
+                }
+                return Json(new { data = "Invalid model state!", success = false });
             }
-            return View(studentViewModel);
+            catch
+            {
+                throw;
+            }
         }
 
-        // GET: Student/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //EF Core Get Student
+            var student = await _context.Students.FindAsync(id);
+            
+            //AutoMapper Entity to ViewModel
+            var studentViewModel = _mapper.Map<StudentViewModel>(student);
 
-            var studentViewModel = await _context.StudentViewModel.FindAsync(id);
-            if (studentViewModel == null)
-            {
-                return NotFound();
-            }
-            return View(studentViewModel);
+            return PartialView("Edit", studentViewModel);
         }
 
-        // POST: Student/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName,Email,Birthday")] StudentViewModel studentViewModel)
+        public async Task<JsonResult> Edit(int id, [Bind("Id,FirstName,LastName,Email,Birthday")] StudentViewModel studentViewModel)
         {
-            if (id != studentViewModel.Id)
+            try
             {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                if (ModelState.IsValid)
                 {
-                    _context.Update(studentViewModel);
+                    //AutoMapper ViewModel to Entity
+                    var student = _mapper.Map<Student>(studentViewModel);
+
+                    //EF Core Update Student
+                    _context.Update(student);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!StudentViewModelExists(studentViewModel.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return Json(new { data = "Invalid model state!", success = false });
             }
-            return View(studentViewModel);
+            catch (Exception)
+            {
+                throw;
+            }
+
         }
 
-        // GET: Student/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //EF Core Get Student
+            var student = await _context.Students.FirstOrDefaultAsync(m => m.Id == id);
+            
+            //AutoMapper Entity to ViewModel
+            var studentViewModel = _mapper.Map<StudentViewModel>(student);
 
-            var studentViewModel = await _context.StudentViewModel
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (studentViewModel == null)
-            {
-                return NotFound();
-            }
-
-            return View(studentViewModel);
+            return PartialView("Delete", studentViewModel);
         }
 
-        // POST: Student/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<JsonResult> DeleteAsync(StudentViewModel studentViewModel)
         {
-            var studentViewModel = await _context.StudentViewModel.FindAsync(id);
-            _context.StudentViewModel.Remove(studentViewModel);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            try
+            {
+                if (studentViewModel.Id != 0)
+                {
+                    //EF Core Get Student
+                    var student = await _context.Students.FindAsync(studentViewModel.Id);
+                    
+                    //EF Core Remove Student
+                    _context.Students.Remove(student);
+                    await _context.SaveChangesAsync();
 
-        private bool StudentViewModelExists(int id)
-        {
-            return _context.StudentViewModel.Any(e => e.Id == id);
+                    return Json(new { data = "Operation performed successfully!", success = true });
+                }
+                return Json(new { data = "Invalid model state!", success = false });
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

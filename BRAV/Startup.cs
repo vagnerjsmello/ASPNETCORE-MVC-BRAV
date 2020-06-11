@@ -5,6 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using BRAV.Models;
+using AutoMapper;
 
 namespace BRAV
 {
@@ -23,6 +25,18 @@ namespace BRAV
             //EFCore In Memory
             services.AddDbContext<BRAVContext>(options => options.UseInMemoryDatabase("DbBRAV"));
             services.AddControllersWithViews();
+
+            //AutoMapper Config
+            var config = new AutoMapper.MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<StudentViewModel, Student>();
+                cfg.CreateMap<Student, StudentViewModel>();
+            });
+
+            IMapper mapper = config.CreateMapper();
+
+            // IoC
+            services.AddSingleton(mapper);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
